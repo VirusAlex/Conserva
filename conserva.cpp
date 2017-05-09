@@ -3,6 +3,13 @@
 #include <QDataStream>
 #include "conserva.h"
 
+
+//Some types of messages by key;
+//'i' = message content some file;
+//'s' = common text message;
+//'a' = message content UserName;
+//'z' = server message to the client;
+
 conserva::conserva(int nPort, QString &uName): m_nNextBlockSize(0)
 {
     m_tcpServer = new QTcpServer();
@@ -18,30 +25,51 @@ conserva::conserva(int nPort, QString &uName): m_nNextBlockSize(0)
 }
 
 conserva::~conserva(){
-    foreach (QTcpSocket *sock, pClientSockets){
-        sock->close();
+    foreach (User *user, Users){
+        user->userSocket->close();
     }
     m_tcpServer->close();
 }
 
 void conserva:: slotNewConnection() {
     QTcpSocket* clientSocket = m_tcpServer->nextPendingConnection();
-    pClientSockets.push_back(clientSocket);
-    connect(pClientSockets.last(), SIGNAL(disconnected()), this, SLOT(slotDisconnect()));
-    connect(pClientSockets.last(), SIGNAL(readyRead()), this, SLOT(slotReadClient()));
+
+    User * newUser = new User(clientSocket,"");
+    Users.push_back(newUser);
+    connect(Users.last()->userSocket, SIGNAL(disconnected()), this, SLOT(slotDisconnect()));
+    connect(Users.last()->userSocket, SIGNAL(readyRead()), this, SLOT(slotReadClient()));
+
     QByteArray hello;
     hello.append("<b>Сервер: "+myName+"</b>");
-    sendToClient(pClientSockets.last(), hello, 'z');
+    sendToClient(Users.last()->userSocket, hello, 'z');
 }
 
 void conserva::slotDisconnect(){
-    QTcpSocket* clientSocket = (QTcpSocket*)sender();
-    clientSocket->deleteLater();
-    clientSocket->close();
-    pClientSockets.removeOne(clientSocket);
+    User * disconnectedUser = getUserBySocket((QTcpSocket*)sender());
+    disconnectedUser->userSocket->deleteLater();
+    disconnectedUser->userSocket->close();
+
     QByteArray byebye;
-    byebye.append("<b>Сервер: one disconnected.</b>");
+    byebye.append("<b>Сервер: Uses \""+disconnectedUser->userName+"\" disconnected.</b>");
+    Users.removeOne(disconnectedUser);
     sendToClient(0, byebye, 's');
+}
+
+
+User * conserva::getUserBySocket(QTcpSocket * value){
+    foreach (User * user, Users)
+        if(user->userSocket == value){
+            return user;
+        }
+    return 0;
+}
+
+User * conserva::getUserByName(QString value){
+    foreach (User * user, Users)
+        if(user->userName == value){
+            return user;
+        }
+    return 0;
 }
 
 void conserva::slotReadClient()
@@ -58,6 +86,12 @@ void conserva::slotReadClient()
                 }
                 else if (wait_for_type=='i'){
                     sendToClient(clientSocket,data,'i');
+                }
+                else if (wait_for_type=='a'){
+                    foreach(User * user, Users){
+                        if(user->userSocket==clientSocket)
+                            user->userName = QString(data);
+                    }
                 }
                 wait_for_size = 0;
                 a = true;
@@ -84,12 +118,12 @@ void conserva::sendToClient(QTcpSocket* pSocket, QByteArray data, char t) {
 
     }
     else
-        foreach (QTcpSocket *sock, pClientSockets){
-            if (sock!=pSocket){
+        foreach (User * user, Users){
+            if (user->userSocket!=pSocket){
                 quint32 s = data.size();
-                sock->write((char *)&s, sizeof(s));
-                sock->write((char *)&t, sizeof(t));
-                sock->write(data);
+                user->userSocket->write((char *)&s, sizeof(s));
+                user->userSocket->write((char *)&t, sizeof(t));
+                user->userSocket->write(data);
             }
         }
 }
