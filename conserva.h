@@ -30,6 +30,8 @@ public slots:
 
     virtual void slotDisconnect();
 
+    virtual void slotExit();
+
     void slotReadClient();
 
 

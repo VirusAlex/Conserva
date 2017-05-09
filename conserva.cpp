@@ -21,6 +21,8 @@ conserva::conserva(int nPort, QString &uName): m_nNextBlockSize(0)
     }
 
     connect(m_tcpServer, SIGNAL(newConnection()), this, SLOT(slotNewConnection()));
+    //connect(this, SIGNAL(aboutToQuit()), this, SLOT(slotExit()));
+
     myName = uName;
 }
 
@@ -55,6 +57,12 @@ void conserva::slotDisconnect(){
     sendToClient(0, byebye, 's');
 }
 
+void conserva::slotExit(){
+    foreach (User *user, Users){
+        user->userSocket->close();
+    }
+    m_tcpServer->close();
+}
 
 User * conserva::getUserBySocket(QTcpSocket * value){
     foreach (User * user, Users)
