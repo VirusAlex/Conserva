@@ -99,7 +99,8 @@ void conserva::slotReadClient()
                     QString utext = "<b style = \"color: green;\">"
                             +getUserBySocket(clientSocket)->userName
                             +": </b>"
-                            +QString(data).toHtmlEscaped();
+                            //+QString(data).toHtmlEscaped(); //Qt 5. required
+                            +Qt::escape(data); //Qt 4. required
                     QByteArray datas = utext.toUtf8();
                     sendToClient(clientSocket,datas,'s');
                 }
