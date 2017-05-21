@@ -7,4 +7,6 @@ RUN echo "#!/bin/ash" >> /run.sh
 RUN echo "ssh-keygen -A && /usr/sbin/sshd && /Conserva/ConsoleServer &" >> /run.sh
 RUN echo "/bin/bash" >> /run.sh
 RUN chmod +x /run.sh
+RUN sed -i s/#PermitRootLogin.*/PermitRootLogin\ yes/ /etc/ssh/sshd_config
+RUN echo "root:root" | chpasswd
 ENTRYPOINT ["/run.sh"]
