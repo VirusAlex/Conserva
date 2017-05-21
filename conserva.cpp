@@ -3,7 +3,7 @@
 #include <QDebug>
 #include <QDataStream>
 #include "conserva.h"
-#include <QTextDocument>
+#include <QtGui/qtextdocument.h>
 
 
 

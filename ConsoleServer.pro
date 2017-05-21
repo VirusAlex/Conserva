@@ -4,9 +4,9 @@
 #
 #-------------------------------------------------
 
-QT       += core network
+QT       += gui core network
 
-QT       -= gui
+#QT       -= gui
 
 TARGET = ConsoleServer
 CONFIG   += console
