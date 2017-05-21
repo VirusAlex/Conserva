@@ -3,6 +3,7 @@
 #include <QDebug>
 #include <QDataStream>
 #include "conserva.h"
+#include <QtGui/qtextdocument.h>
 
 
 //Some types of messages by key;
