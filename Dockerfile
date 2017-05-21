@@ -5,5 +5,5 @@ RUN cd / && git clone https://github.com/VirusAlex/Conserva.git && cd Conserva &
 RUN cd /
 RUN echo "ssh-keygen -A && /usr/sbin/sshd && /Conserva/ConsoleServer &" >> /run.sh
 RUN echo "/bin/bash" >> /run.sh
-#RUN echo "rm run.sh" >> /run.sh
+RUN chmod +x /run.sh
 ENTRYPOINT ["/run.sh"]
