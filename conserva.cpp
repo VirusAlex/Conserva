@@ -1,3 +1,4 @@
+//+++/+±/
 #include <QTime>
 #include <QDebug>
 #include <QDataStream>
@@ -42,8 +43,8 @@ void conserva:: slotNewConnection() {
     connect(Users.last()->userSocket, SIGNAL(readyRead()), this, SLOT(slotReadClient()));
 
     QByteArray hello;
-    hello.append("<b>Сервер: "+myName+"</b>");
-    sendToClient(Users.last()->userSocket, hello, 'z');
+    //hello.append("<b>Сервер: "+myName+"</b>");
+    //sendToClient(Users.last()->userSocket, hello, 'z');
 
     hello = myName.toUtf8();
     sendToClient(Users.last()->userSocket, hello, 'a');
@@ -55,9 +56,11 @@ void conserva::slotDisconnect(){
     disconnectedUser->userSocket->deleteLater();
 
     QByteArray byebye;
-    byebye.append("<b>Сервер: User \""+disconnectedUser->userName+"\" disconnected.</b>");
+    byebye.append("<b><t style = \"color: red;\">Сервер: </t> User \""
+                  +disconnectedUser->userName
+                  +"\" disconnected.</b>");
     Users.removeOne(disconnectedUser);
-    sendToClient(0, byebye, 's');
+    sendToClient(0, byebye, 'z');
 }
 
 void conserva::slotExit(){
@@ -93,15 +96,22 @@ void conserva::slotReadClient()
             if (clientSocket->bytesAvailable() >= wait_for_size) {
                 QByteArray data = clientSocket->read(wait_for_size);
                 if(wait_for_type=='s'){
-                    sendToClient(clientSocket,data,'s');
+                    QString utext = "<b style = \"color: green;\">"
+                            +getUserBySocket(clientSocket)->userName
+                            +": </b>"
+                            +QString(data).toHtmlEscaped();
+                    QByteArray datas = utext.toUtf8();
+                    sendToClient(clientSocket,datas,'s');
                 }
                 else if (wait_for_type=='i'){
                     sendToClient(clientSocket,data,'i');
                 }
                 else if (wait_for_type=='a'){
                     foreach(User * user, Users){
-                        if(user->userSocket==clientSocket)
+                        if(user->userSocket==clientSocket){
                             user->userName = QString(data);
+                            break;
+                        }
                     }
 
                 }
@@ -121,15 +131,7 @@ void conserva::slotReadClient()
 }
 
 void conserva::sendToClient(QTcpSocket* pSocket, QByteArray data, char t) {
-    if (t == 'z'){
-        quint32 s = data.size();
-        pSocket->write((char *)&s, sizeof(s));
-        char z = 's';
-        pSocket->write((char *)&z, sizeof(z));
-        pSocket->write(data);
-
-    }
-    else if (t == 'a'){
+    if (t == 'a'){ //if (t == 'z'||t == 'a'){
         quint32 s = data.size();
         pSocket->write((char *)&s, sizeof(s));
         pSocket->write((char *)&t, sizeof(t));
