@@ -101,7 +101,7 @@ void conserva::slotReadClient()
                             +getUserBySocket(clientSocket)->userName
                             +": </b>"
                             //+QString(data).toHtmlEscaped(); //Qt 5. required
-                            +Qt::escape(data); //Qt 4. required
+                            +Qt::escape(QString(data)); //Qt 4. required
                     QByteArray datas = utext.toUtf8();
                     sendToClient(clientSocket,datas,'s');
                 }
